@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NotaFácil</title>
+
+<!-- PWA META TAGS -->
+<meta name="application-name" content="NotaFácil">
+<meta name="description" content="App de prestação de contas para viagens corporativas. Fotografe notas, registre despesas e exporte para Excel.">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NotaFácil">
+<meta name="msapplication-TileColor" content="#1a1a1a">
+
+<!-- PWA MANIFEST -->
+<link rel="manifest" href="manifest.json">
+
+<!-- APPLE TOUCH ICON (emoji fallback) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231a1a1a'/><text y='.9em' font-size='70' x='10'>🧾</text></svg>">
+<meta name="description" content="App de prestação de contas para viagens corporativas">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NotaFácil">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%231a1a1a'/%3E%3Ctext x='256' y='320' font-size='260' text-anchor='middle' fill='%23c8f55a'%3E🧾%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22NotaF%C3%A1cil%22%2C%22short_name%22%3A%22NotaF%C3%A1cil%22%2C%22description%22%3A%22App%20de%20presta%C3%A7%C3%A3o%20de%20contas%20para%20viagens%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%231a1a1a%22%2C%22theme_color%22%3A%22%231a1a1a%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%3D'0%25200%2520512%2520512'%253E%253Crect%2520width%3D'512'%2520height%3D'512'%2520rx%3D'100'%2520fill%3D'%25231a1a1a'%2F%253E%253Ctext%2520x%3D'256'%2520y%3D'320'%2520font-size%3D'260'%2520text-anchor%3D'middle'%253E%25F0%259F%25A7%25BE%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+<script>
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'notafacil-v3';
+    const ASSETS = ['./', './index.html'];
+    self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))));
+    self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./')))));
+  `;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f2eb;--surface:#fff;--s2:#ede9e0;--border:#d8d2c5;--accent:#1a1a1a;--green:#2d6a4f;--gl:#d8f3dc;--red:#c1121f;--rl:#ffe5e5;--amber:#e07d10;--al:#fff3cd;--blue:#1d4e89;--bl:#dbeafe;--text:#1a1a1a;--muted:#7a7065;--flash:#e07d10;--dep:#1d4e89;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;}
+.nav-tabs{display:flex;background:var(--accent);position:sticky;top:0;z-index:200;}
+.nav-tab{flex:1;padding:13px 2px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.3px;color:rgba(255,255,255,.4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;}
+.nav-tab.active{color:#fff;border-bottom-color:#f5f2eb;}
+.screen{display:none;padding-bottom:110px;}.screen.active{display:block;}
+.ph{padding:14px 16px 11px;background:var(--accent);color:#fff;}
+.ph-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;line-height:1;}
+.ph-sub{font-size:10px;opacity:.4;text-transform:uppercase;letter-spacing:1px;margin-top:1px;}
+.bal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px 13px 0;}
+.bal-card{background:var(--surface);border-radius:14px;padding:12px;border:1px solid var(--border);}
+.bl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.bv{font-family:'Bebas Neue',sans-serif;font-size:22px;}
+.bs{font-size:10px;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;line-height:1.5;}
+.bpos{color:var(--green);}.bneg{color:var(--red);}
+.tot-card{margin:10px 13px 0;background:var(--accent);color:#fff;border-radius:14px;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;}
+.tot-card .bl{color:rgba(255,255,255,.5);}
+.tot-card .bv{font-size:26px;}
+.tot-badge{font-size:11px;background:rgba(255,255,255,.1);border-radius:20px;padding:4px 10px;color:rgba(255,255,255,.7);}
+.cs{display:flex;gap:8px;padding:11px 13px;overflow-x:auto;scrollbar-width:none;}
+.cp{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid var(--border);background:var(--surface);white-space:nowrap;}
+.cd{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sl{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);padding:5px 13px 3px;}
+.el{padding:0 10px;}
+.ec{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;display:flex;align-items:stretch;overflow:hidden;transition:transform .15s;}
+.ec:active{transform:scale(.98);}
+.estr{width:4px;flex-shrink:0;}
+.eb{padding:10px 10px 8px;flex:1;min-width:0;}
+.et{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;}
+.en{font-weight:600;font-size:13px;line-height:1.2;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ev{font-family:'DM Mono',monospace;font-size:13px;flex-shrink:0;}
+.em{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;align-items:center;}
+.mt{font-size:10px;padding:2px 7px;border-radius:8px;border:1px solid var(--border);color:var(--muted);}
+.mc{border:none!important;font-weight:500;}
+.edel{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:11px;align-self:center;margin-right:6px;flex-shrink:0;}
+.edel:active{border-color:var(--red);color:var(--red);}
+.thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;align-self:center;margin-right:6px;border:1px solid var(--border);}
+.es{text-align:center;padding:45px 20px;color:var(--muted);}
+.ei{font-size:36px;margin-bottom:10px;opacity:.4;}
+/* DEPOSIT */
+.dscr{padding:13px;}
+.dsg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px;}
+.dsc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 12px;}
+.dsl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.dsv{font-family:'Bebas Neue',sans-serif;font-size:20px;}
+.dlt{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:8px;}
+.di{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.dil{flex:1;}
+.dit{font-size:11px;font-weight:600;margin-bottom:2px;}
+.did{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+.div2{font-family:'Bebas Neue',sans-serif;font-size:18px;margin-right:4px;}
+.ddel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px 8px;}
+/* FAB */
+.fab{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:300;}
+.fbp{background:var(--accent);color:#fff;border:none;border-radius:50px;padding:13px 20px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 6px 24px rgba(0,0,0,.25);transition:all .15s;white-space:nowrap;}
+.fbp:active{transform:scale(.95);box-shadow:none;}
+.fbs{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:50px;padding:13px 15px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:all .15s;white-space:nowrap;}
+.fbs:active{transform:scale(.95);}
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s;}
+.ov.open{opacity:1;pointer-events:all;}
+.dr{background:var(--bg);border-radius:20px 20px 0 0;width:100%;padding:0 0 36px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1.2,.6,1);max-height:93vh;overflow-y:auto;border-top:1px solid var(--border);}
+.ov.open .dr{transform:translateY(0);}
+.drh{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+.drhd{padding:12px 17px 10px;border-bottom:1px solid var(--border);}
+.drt{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:.5px;}
+.drb{padding:13px 17px;}
+/* FORM */
+.fg{margin-bottom:12px;}
+.fl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:5px;font-weight:600;}
+.fi{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.fi:focus{border-color:var(--accent);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fta{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:none;min-height:60px;}
+.fta:focus{border-color:var(--accent);}
+/* CAMERA */
+.ca{border:2px dashed var(--border);border-radius:12px;aspect-ratio:4/3;background:var(--s2);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:10px;cursor:pointer;}
+.ca img{width:100%;height:100%;object-fit:cover;display:none;}
+.caph{text-align:center;color:var(--muted);}
+.caph .ci{font-size:30px;margin-bottom:5px;}
+.caph p{font-size:12px;}
+#fi2{display:none;}
+.cbs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.cb{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;color:var(--text);}
+.cb:active{transform:scale(.97);}
+/* AI */
+.ab{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:12px;min-height:40px;}
+.ab.ld{border-color:var(--amber);color:var(--amber);background:var(--al);}
+.ab.dn{border-color:var(--green);color:var(--green);background:var(--gl);}
+.ab.er{border-color:var(--red);color:var(--red);background:var(--rl);}
+.sp{width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+/* CAT */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.co{border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;transition:all .15s;background:var(--surface);}
+.co.sel{border-color:var(--accent);background:var(--accent);color:#fff;}
+.co.sel .cd{background:#fff!important;}
+.coa{border:1.5px dashed var(--border);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;color:var(--muted);background:var(--surface);}
+/* PAY */
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.po{border:1.5px solid var(--border);border-radius:10px;padding:11px;cursor:pointer;font-size:13px;font-weight:600;text-align:center;transition:all .15s;background:var(--surface);}
+.po.sf{border-color:var(--flash);background:var(--al);color:var(--flash);}
+.po.sd{border-color:var(--dep);background:var(--bl);color:var(--dep);}
+/* SETTINGS */
+.ss{padding:13px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+.sch{padding:12px 15px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.scb{padding:12px 15px;}
+.sr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.sr:last-child{border-bottom:none;}
+.srl{font-size:13px;}
+.srv{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);}
+.cmi{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+.cmi:last-child{border-bottom:none;}
+.ccp{width:24px;height:24px;border-radius:50%;border:none;cursor:pointer;padding:0;flex-shrink:0;}
+.cmn{flex:1;font-size:13px;font-weight:500;}
+.cmd{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;}
+.acr{display:flex;gap:8px;margin-top:10px;}
+.aci{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;}
+.aci:focus{border-color:var(--accent);}
+.bsm{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+.bsave{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:13px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;cursor:pointer;width:100%;margin-top:8px;}
+.bsave:active{transform:scale(.98);}
+/* TOGGLE */
+.tg{position:relative;width:40px;height:22px;flex-shrink:0;}
+.tg input{opacity:0;width:0;height:0;}
+.tgs{position:absolute;inset:0;background:var(--border);border-radius:11px;cursor:pointer;transition:.2s;}
+.tgs:before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+.tg input:checked+.tgs{background:var(--green);}
+.tg input:checked+.tgs:before{transform:translateX(18px);}
+/* NOTIF */
+.nb{margin:11px 13px 0;background:var(--al);border:1px solid var(--amber);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--amber);align-items:center;gap:8px;display:none;}
+.nb.show{display:flex;}
+.nd{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--amber);font-size:16px;}
+/* TOAST */
+.toast{position:fixed;bottom:82px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--accent);color:#fff;border-radius:50px;padding:10px 18px;font-size:13px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.green{background:var(--green);}.toast.red{background:var(--red);}
+::-webkit-scrollbar{width:0;height:0;}
+</style>
+</head>
+<body>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="SS('home')">🏠 Início</div>
+  <div class="nav-tab" onclick="SS('expenses')">🧾 Notas</div>
+  <div class="nav-tab" onclick="SS('deposits')">💰 Depósitos</div>
+  <div class="nav-tab" onclick="SS('settings')">⚙️ Config</div>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="ph"><div class="ph-title">NotaFácil</div><div class="ph-sub">Prestação de Contas</div></div>
+  <div id="nb" class="nb">🔔 <span id="nt"></span><button class="nd" onclick="DN()">✕</button></div>
+  <div class="bal-grid">
+    <div class="bal-card"><div class="bl">💳 Cartão Flash</div><div class="bv" id="fBal">R$ 0</div><div class="bs" id="fSub">—</div></div>
+    <div class="bal-card"><div class="bl">🏦 Depósito Conta</div><div class="bv" id="dBal">R$ 0</div><div class="bs" id="dSub">—</div></div>
+  </div>
+  <div class="tot-card"><div><div class="bl">Total gasto</div><div class="bv" id="tSpent">R$ 0,00</div></div><div class="tot-badge" id="tBadge">0 notas</div></div>
+  <div class="cs" id="cScroll"></div>
+  <div class="sl">Últimas despesas</div>
+  <div class="el" id="hEl"></div>
+</div>
+
+<!-- NOTAS -->
+<div class="screen" id="screen-expenses">
+  <div class="ph"><div class="ph-title">Todas as Notas</div></div>
+  <div class="el" style="padding-top:10px" id="aEl"></div>
+</div>
+
+<!-- DEPÓSITOS -->
+<div class="screen" id="screen-deposits">
+  <div class="ph"><div class="ph-title">Depósitos Recebidos</div><div class="ph-sub">Valores recebidos da empresa</div></div>
+  <div class="dscr">
+    <div class="dsg">
+      <div class="dsc"><div class="dsl">💳 Total Flash</div><div class="dsv" id="tFA" style="color:var(--flash)">R$ 0</div></div>
+      <div class="dsc"><div class="dsl">🏦 Total Depósito</div><div class="dsv" id="tDA" style="color:var(--dep)">R$ 0</div></div>
+    </div>
+    <div class="dlt">Histórico</div>
+    <div id="dList"></div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div class="screen" id="screen-settings">
+  <div class="ph"><div class="ph-title">Configurações</div></div>
+  <div class="ss">
+    <div class="sc">
+      <div class="sch">🔔 Lembretes de Refeição</div>
+      <div class="scb">
+        <div class="sr"><div class="srl">Lembretes ativos</div><label class="tg"><input type="checkbox" id="nEn" checked onchange="svS();rNP()"><span class="tgs"></span></label></div>
+        <div class="sr"><div class="srl">🍽 Almoço</div><div class="srv">12:00</div></div>
+        <div class="sr"><div class="srl">🌙 Janta</div><div class="srv">19:00</div></div>
+        <div style="margin-top:10px"><button class="bsm" onclick="tN()">Testar notificação</button></div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sch">🏷 Categorias</div>
+      <div class="scb" id="cML"></div>
+      <div style="padding:0 15px 13px">
+        <div class="acr"><input class="aci" id="nCN" placeholder="Nova categoria..." onkeydown="if(event.key==='Enter')addCat()"><button class="bsm" onclick="addCat()">+ Adicionar</button></div>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sch">📊 Exportar</div>
+      <div class="scb"><button class="bsave" onclick="expXL()" style="margin-top:0">⬇ Exportar Excel Completo</button><div style="font-size:11px;color:var(--muted);margin-top:7px;text-align:center">Data · Categoria · Pagamento · Valores · Saldo</div></div>
+    </div>
+    <div class="sc">
+      <div class="sch" style="color:var(--red)">⚠️ Zona de Risco</div>
+      <div class="scb" style="display:flex;flex-direction:column;gap:8px;">
+        <button onclick="clrE()" style="background:var(--rl);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;font-weight:600;">🗑 Apagar todas as notas</button>
+        <button onclick="clrD()" style="background:var(--rl);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;font-weight:600;">🗑 Apagar todos os depósitos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<div class="fab" id="mFab">
+  <button class="fbp" id="fBtn" onclick="openAdd()">📷 Nova Nota</button>
+  <button class="fbs" id="fBtn2" onclick="expXL()">⬇ Excel</button>
+</div>
+
+<!-- MODAL: NOVA NOTA -->
+<div class="ov" id="addOv" onclick="if(event.target===this)closeAdd()">
+  <div class="dr">
+    <div class="drh"></div>
+    <div class="drhd"><div class="drt">📷 Nova Despesa</div></div>
+    <div class="drb">
+      <div class="ca" id="cArea" onclick="tCam()">
+        <div class="caph" id="cPH"><div class="ci">📸</div><p>Toque para fotografar a nota</p></div>
+        <img id="pImg" alt="preview">
+      </div>
+      <input type="file" id="fi2" accept="image/*" onchange="hFile(event)">
+      <div class="cbs">
+        <button class="cb" onclick="tCam()">📷 Câmera</button>
+        <button class="cb" onclick="tGal()">🖼 Galeria</button>
+      </div>
+      <div class="ab" id="aBar">✨ Tire uma foto — a IA lê e preenche os dados automaticamente</div>
+      <div class="fg"><label class="fl">Estabelecimento / Descrição</label><input type="text" class="fi" id="fN" placeholder="Ex: Restaurante Central"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Valor (R$)</label><input type="number" class="fi" id="fV" placeholder="0,00" step="0.01" min="0"></div>
+        <div class="fg"><label class="fl">Data</label><input type="date" class="fi" id="fD"></div>
+      </div>
+      <div class="fg"><label class="fl">Categoria</label><div class="cg" id="cGrid"></div></div>
+      <div class="fg">
+        <label class="fl">Forma de Pagamento</label>
+        <div class="pg">
+          <div class="po" data-pay="Flash" onclick="selPay(this)">💳 Cartão Flash</div>
+          <div class="po" data-pay="Depósito" onclick="selPay(this)">🏦 Depósito</div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Observação (opcional)</label><textarea class="fta" id="fO" placeholder="Ex: reunião com cliente..."></textarea></div>
+      <button class="bsave" onclick="saveExp()">✓ Salvar Despesa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVO DEPÓSITO -->
+<div class="ov" id="depOv" onclick="if(event.target===this)closeDep()">
+  <div class="dr">
+    <div class="drh"></div>
+    <div class="drhd"><div class="drt">💰 Registrar Depósito</div></div>
+    <div class="drb">
+      <div style="background:var(--s2);border-radius:12px;padding:12px;margin-bottom:13px;font-size:12px;color:var(--muted);line-height:1.6;">
+        Registre cada valor que a empresa depositou. Pode adicionar vários ao longo da viagem — o app soma tudo e calcula o saldo automaticamente.
+      </div>
+      <div class="fg">
+        <label class="fl">Tipo de depósito</label>
+        <div class="pg">
+          <div class="po" data-dt="Flash" onclick="selDT(this)">💳 Cartão Flash</div>
+          <div class="po" data-dt="Depósito" onclick="selDT(this)">🏦 Depósito Conta</div>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Valor (R$)</label><input type="number" class="fi" id="dV" placeholder="Ex: 300,00" step="0.01" min="0"></div>
+        <div class="fg"><label class="fl">Data do depósito</label><input type="date" class="fi" id="dD"></div>
+      </div>
+      <div class="fg"><label class="fl">Observação (opcional)</label><input type="text" class="fi" id="dO" placeholder="Ex: adiantamento terça-feira"></div>
+      <button class="bsave" onclick="saveDep()">✓ Confirmar Depósito</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var expenses=[],deposits=[],categories=[],settings={};
+var sC='',sP='',sDT='',cb64='',aiR=false;
+var DC=[{name:'Alimentação',color:'#e07d10'},{name:'Transporte',color:'#1d4e89'},{name:'Lavanderia',color:'#7b2d8b'},{name:'Outros',color:'#2d6a4f'}];
+
+function ld(){
+  try{expenses=JSON.parse(localStorage.getItem('nf_e')||'[]');}catch(e){expenses=[];}
+  try{deposits=JSON.parse(localStorage.getItem('nf_d')||'[]');}catch(e){deposits=[];}
+  try{categories=JSON.parse(localStorage.getItem('nf_c')||'null')||DC.map(function(c){return Object.assign({},c);});}catch(e){categories=DC.map(function(c){return Object.assign({},c);});}
+  try{settings=Object.assign({notifEnabled:true},JSON.parse(localStorage.getItem('nf_s')||'{}'));}catch(e){settings={notifEnabled:true};}
+}
+function sv(){
+  localStorage.setItem('nf_e',JSON.stringify(expenses));
+  localStorage.setItem('nf_d',JSON.stringify(deposits));
+  localStorage.setItem('nf_c',JSON.stringify(categories));
+  localStorage.setItem('nf_s',JSON.stringify(settings));
+}
+
+function SS(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('screen-'+id).classList.add('active');
+  ['home','expenses','deposits','settings'].forEach(function(s,i){if(s===id)document.querySelectorAll('.nav-tab')[i].classList.add('active');});
+  var fab=document.getElementById('mFab'),fbtn=document.getElementById('fBtn'),fbtn2=document.getElementById('fBtn2');
+  if(id==='settings'){fab.style.display='none';return;}
+  fab.style.display='flex';
+  if(id==='deposits'){fbtn.innerHTML='💰 Novo Depósito';fbtn.onclick=openDep;fbtn2.style.display='none';}
+  else{fbtn.innerHTML='📷 Nova Nota';fbtn.onclick=openAdd;fbtn2.style.display='flex';}
+  if(id==='home')rH();
+  if(id==='expenses')rAE();
+  if(id==='deposits')rD();
+  if(id==='settings')rSet();
+}
+
+function fmt(v){return 'R$ '+(v||0).toFixed(2).replace('.',',');}
+function fmtS(v){return 'R$ '+Math.round(v||0);}
+function fD(d){return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR'):'';}
+
+function rH(){
+  var fA=deposits.filter(function(d){return d.tipo==='Flash';}).reduce(function(s,d){return s+d.valor;},0);
+  var dA=deposits.filter(function(d){return d.tipo==='Depósito';}).reduce(function(s,d){return s+d.valor;},0);
+  var fS=expenses.filter(function(e){return e.pagamento==='Flash';}).reduce(function(s,e){return s+e.valor;},0);
+  var dS=expenses.filter(function(e){return e.pagamento==='Depósito';}).reduce(function(s,e){return s+e.valor;},0);
+  var tot=expenses.reduce(function(s,e){return s+e.valor;},0);
+  var fR=fA-fS,dR=dA-dS;
+  var fEl=document.getElementById('fBal');fEl.textContent=fmt(fR);fEl.className='bv '+(fR>=0?'bpos':'bneg');
+  document.getElementById('fSub').innerHTML='Recebido: '+fmt(fA)+'<br>Gasto: '+fmt(fS);
+  var dEl=document.getElementById('dBal');dEl.textContent=fmt(dR);dEl.className='bv '+(dR>=0?'bpos':'bneg');
+  document.getElementById('dSub').innerHTML='Recebido: '+fmt(dA)+'<br>Gasto: '+fmt(dS);
+  document.getElementById('tSpent').textContent=fmt(tot);
+  document.getElementById('tBadge').textContent=expenses.length+' nota'+(expenses.length!==1?'s':'');
+  var cs=document.getElementById('cScroll');cs.innerHTML='';
+  categories.forEach(function(cat){
+    var sum=expenses.filter(function(e){return e.categoria===cat.name;}).reduce(function(s,e){return s+e.valor;},0);
+    if(sum>0)cs.innerHTML+='<div class="cp"><div class="cd" style="background:'+cat.color+'"></div>'+cat.name+' '+fmtS(sum)+'</div>';
+  });
+  var recent=expenses.slice().reverse().slice(0,5);
+  var list=document.getElementById('hEl');
+  list.innerHTML=recent.length===0?'<div class="es"><div class="ei">🧾</div><p style="font-size:13px">Nenhuma despesa ainda.<br>Toque em <strong>Nova Nota</strong>.</p></div>':recent.map(function(e,i){return eCard(e,expenses.length-1-i);}).join('');
+}
+
+function eCard(e,idx){
+  var cat=categories.find(function(c){return c.name===e.categoria;})||{color:'#aaa'};
+  var pi=e.pagamento==='Flash'?'💳':'🏦';
+  var th=e.thumb?'<img class="thumb" src="'+e.thumb+'" alt="">':'';
+  return '<div class="ec"><div class="estr" style="background:'+cat.color+'"></div><div class="eb"><div class="et"><div class="en">'+e.nome+'</div><div class="ev">'+fmt(e.valor)+'</div></div><div class="em"><span class="mt mc" style="background:'+cat.color+'22;color:'+cat.color+'">'+e.categoria+'</span>'+(e.data?'<span class="mt">'+fD(e.data)+'</span>':'')+'<span class="mt">'+pi+' '+e.pagamento+'</span>'+(e.obs?'<span class="mt">📝</span>':'')+'</div></div>'+th+'<button class="edel" onclick="delE('+idx+',event)">✕</button></div>';
+}
+
+function rAE(){
+  var list=document.getElementById('aEl');
+  if(!expenses.length){list.innerHTML='<div class="es"><div class="ei">🧾</div><p style="font-size:13px">Nenhuma despesa ainda.</p></div>';return;}
+  list.innerHTML=expenses.slice().reverse().map(function(e,ri){return eCard(e,expenses.length-1-ri);}).join('');
+}
+
+function delE(i,ev){
+  ev.stopPropagation();
+  if(!confirm('Excluir esta despesa?'))return;
+  expenses.splice(i,1);sv();rH();rAE();toast('Despesa removida','red');
+}
+
+function rD(){
+  var ft=deposits.filter(function(d){return d.tipo==='Flash';}).reduce(function(s,d){return s+d.valor;},0);
+  var dt=deposits.filter(function(d){return d.tipo==='Depósito';}).reduce(function(s,d){return s+d.valor;},0);
+  document.getElementById('tFA').textContent=fmt(ft);
+  document.getElementById('tDA').textContent=fmt(dt);
+  var list=document.getElementById('dList');
+  if(!deposits.length){list.innerHTML='<div class="es"><div class="ei">💰</div><p style="font-size:13px">Nenhum depósito registrado.<br>Toque em <strong>Novo Depósito</strong>.</p></div>';return;}
+  list.innerHTML=deposits.slice().reverse().map(function(d,ri){
+    var i=deposits.length-1-ri;
+    var isF=d.tipo==='Flash';var cl=isF?'var(--flash)':'var(--dep)';var ic=isF?'💳':'🏦';
+    return '<div class="di"><div class="dil"><div class="dit" style="color:'+cl+'">'+ic+' '+d.tipo+'</div><div class="did">'+fD(d.data)+(d.obs?' · '+d.obs:'')+'</div></div><div class="div2" style="color:'+cl+'">'+fmt(d.valor)+'</div><button class="ddel" onclick="delD('+i+',event)">✕</button></div>';
+  }).join('');
+}
+
+function delD(i,ev){
+  ev.stopPropagation();
+  if(!confirm('Excluir este depósito?'))return;
+  deposits.splice(i,1);sv();rD();rH();toast('Depósito removido','red');
+}
+
+function openDep(){
+  document.getElementById('depOv').classList.add('open');
+  document.getElementById('dV').value='';
+  document.getElementById('dD').value=new Date().toISOString().split('T')[0];
+  document.getElementById('dO').value='';
+  sDT='';document.querySelectorAll('[data-dt]').forEach(function(o){o.className='po';});
+}
+function closeDep(){document.getElementById('depOv').classList.remove('open');}
+function selDT(el){document.querySelectorAll('[data-dt]').forEach(function(o){o.className='po';});el.classList.add(el.dataset.dt==='Flash'?'sf':'sd');sDT=el.dataset.dt;}
+function saveDep(){
+  var val=parseFloat(document.getElementById('dV').value);
+  var dat=document.getElementById('dD').value;
+  var obs=document.getElementById('dO').value.trim();
+  if(!sDT){toast('Selecione o tipo','red');return;}
+  if(!val||val<=0){toast('Informe o valor','red');return;}
+  if(!dat){toast('Informe a data','red');return;}
+  deposits.push({tipo:sDT,valor:val,data:dat,obs:obs,id:Date.now()});
+  sv();closeDep();rD();rH();toast('✅ Depósito registrado!','green');
+}
+
+function rSet(){document.getElementById('nEn').checked=settings.notifEnabled;rCM();}
+function svS(){settings.notifEnabled=document.getElementById('nEn').checked;sv();}
+function rCM(){
+  document.getElementById('cML').innerHTML=categories.map(function(cat,i){
+    return '<div class="cmi"><input type="color" class="ccp" value="'+cat.color+'" onchange="upCC('+i+',this.value)"><div class="cmn">'+cat.name+'</div><button class="cmd" onclick="delCat('+i+')">✕</button></div>';
+  }).join('');
+}
+function upCC(i,c){categories[i].color=c;sv();}
+function addCat(){
+  var input=document.getElementById('nCN');var name=input.value.trim();
+  if(!name)return;
+  if(categories.find(function(c){return c.name.toLowerCase()===name.toLowerCase();})){toast('Já existe','red');return;}
+  var cols=['#e05c5c','#5ce0a0','#5c9ee0','#e0b85c','#a05ce0','#5ce0d4'];
+  categories.push({name:name,color:cols[categories.length%cols.length]});
+  input.value='';sv();rCM();toast('Categoria adicionada','green');
+}
+function delCat(i){if(!confirm('Remover "'+categories[i].name+'"?'))return;categories.splice(i,1);sv();rCM();toast('Removida');}
+function clrE(){if(!confirm('Apagar TODAS as notas?'))return;expenses=[];sv();rH();rAE();toast('Notas apagadas');}
+function clrD(){if(!confirm('Apagar TODOS os depósitos?'))return;deposits=[];sv();rD();rH();toast('Depósitos apagados');}
+
+function openAdd(){document.getElementById('addOv').classList.add('open');resetAdd();rCG();}
+function closeAdd(){document.getElementById('addOv').classList.remove('open');}
+function resetAdd(){
+  document.getElementById('fN').value='';
+  document.getElementById('fV').value='';
+  document.getElementById('fD').value=new Date().toISOString().split('T')[0];
+  document.getElementById('fO').value='';
+  document.getElementById('pImg').style.display='none';
+  document.getElementById('cPH').style.display='flex';
+  document.getElementById('aBar').textContent='✨ Tire uma foto — a IA lê e preenche os dados automaticamente';
+  document.getElementById('aBar').className='ab';
+  sC='';sP='';cb64='';
+  document.querySelectorAll('.po').forEach(function(o){o.className='po';});
+}
+function rCG(){
+  document.getElementById('cGrid').innerHTML=
+    categories.map(function(cat){return '<div class="co" data-cat="'+cat.name+'" onclick="selC(this)"><div class="cd" style="background:'+cat.color+'"></div>'+cat.name+'</div>';}).join('')+
+    '<div class="coa" onclick="pNC()">➕ Nova categoria</div>';
+}
+function selC(el){document.querySelectorAll('.co').forEach(function(o){o.classList.remove('sel');});el.classList.add('sel');sC=el.dataset.cat;}
+function selPay(el){document.querySelectorAll('.po').forEach(function(o){o.className='po';});el.classList.add(el.dataset.pay==='Flash'?'sf':'sd');sP=el.dataset.pay;}
+function pNC(){
+  var name=prompt('Nome da nova categoria:');if(!name||!name.trim())return;
+  var t=name.trim();
+  if(!categories.find(function(c){return c.name.toLowerCase()===t.toLowerCase();})){
+    var cols=['#e05c5c','#5ce0a0','#5c9ee0','#e0b85c','#a05ce0'];
+    categories.push({name:t,color:cols[categories.length%cols.length]});sv();
+  }
+  rCG();
+  var opt=document.querySelector('.co[data-cat="'+t+'"]');if(opt)selC(opt);
+}
+
+function tCam(){var fi=document.getElementById('fi2');fi.setAttribute('capture','environment');fi.click();}
+function tGal(){var fi=document.getElementById('fi2');fi.removeAttribute('capture');fi.click();}
+
+async function hFile(e){
+  var file=e.target.files[0];if(!file)return;
+  var compressed=await compImg(file,1024,0.82);
+  document.getElementById('pImg').src=compressed;
+  document.getElementById('pImg').style.display='block';
+  document.getElementById('cPH').style.display='none';
+  cb64=compressed.split(',')[1];
+  e.target.value='';
+  await callAI();
+}
+
+function compImg(file,maxS,q){
+  return new Promise(function(resolve){
+    var img=new Image();var url=URL.createObjectURL(file);
+    img.onload=function(){
+      URL.revokeObjectURL(url);
+      var w=img.width,h=img.height;
+      if(w>maxS||h>maxS){if(w>h){h=Math.round(h*maxS/w);w=maxS;}else{w=Math.round(w*maxS/h);h=maxS;}}
+      var c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',q));
+    };
+    img.src=url;
+  });
+}
+
+async function callAI(){
+  if(aiR)return;aiR=true;
+  var bar=document.getElementById('aBar');
+  bar.className='ab ld';bar.innerHTML='<div class="sp"></div> Lendo nota com IA...';
+  var catNm=categories.map(function(c){return c.name;}).join(', ');
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:500,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:cb64}},
+          {type:'text',text:'Você é especialista em leitura de notas fiscais brasileiras impressas e ESCRITAS À MÃO. Analise a imagem com atenção.\n\nExtraia:\n- nome: nome do estabelecimento (máx 40 chars, use "Despesa" se não identificar)\n- valor: valor TOTAL em decimal (procure: Total, Total a pagar — maior valor final)\n- data: formato YYYY-MM-DD (null se não encontrar)\n- categoria: classifique em: '+catNm+'. Crie nome curto se não encaixar\n- nova_categoria: true se criou categoria nova, false caso contrário\n\nRetorne SOMENTE JSON sem nenhum texto adicional:\n{"nome":"...","valor":0.00,"data":"YYYY-MM-DD","categoria":"...","nova_categoria":false}'}
+        ]}]
+      })
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    var data=await res.json();
+    var txt=data.content.map(function(c){return c.text||'';}).join('');
+    var p=JSON.parse(txt.replace(/```json?|```/g,'').trim());
+    if(p.nome)document.getElementById('fN').value=p.nome;
+    if(p.valor>0)document.getElementById('fV').value=p.valor;
+    if(p.data)document.getElementById('fD').value=p.data;
+    if(p.nova_categoria&&p.categoria&&!categories.find(function(c){return c.name.toLowerCase()===p.categoria.toLowerCase();})){
+      var cols=['#e05c5c','#5ce0a0','#a05ce0','#e0885c'];
+      categories.push({name:p.categoria,color:cols[categories.length%cols.length]});sv();rCM();
+    }
+    rCG();
+    if(p.categoria){var opt=document.querySelector('.co[data-cat="'+p.categoria+'"]');if(opt)selC(opt);}
+    bar.className='ab dn';bar.innerHTML='✅ Dados extraídos! Confira e corrija se necessário.';
+  }catch(err){
+    console.error('AI Error:',err);
+    bar.className='ab er';bar.innerHTML='⚠️ Não consegui ler. Verifique a conexão ou preencha manualmente.';
+  }
+  aiR=false;
+}
+
+function saveExp(){
+  var nome=document.getElementById('fN').value.trim();
+  var val=parseFloat(document.getElementById('fV').value);
+  var dat=document.getElementById('fD').value;
+  var obs=document.getElementById('fO').value.trim();
+  if(!nome){toast('Informe o estabelecimento','red');return;}
+  if(!val||val<=0){toast('Informe o valor','red');return;}
+  if(!sC){toast('Selecione a categoria','red');return;}
+  if(!sP){toast('Selecione a forma de pagamento','red');return;}
+  var thumb=null;
+  if(cb64){try{var c=document.createElement('canvas');var img=document.getElementById('pImg');var sc=Math.min(80/img.naturalWidth,80/img.naturalHeight);c.width=img.naturalWidth*sc;c.height=img.naturalHeight*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);thumb=c.toDataURL('image/jpeg',0.6);}catch(e){}}
+  expenses.push({nome:nome,valor:val,data:dat,obs:obs,categoria:sC,pagamento:sP,thumb:thumb,id:Date.now()});
+  sv();closeAdd();rH();toast('✅ Despesa salva!','green');
+}
+
+function expXL(){
+  if(!expenses.length){toast('Nenhuma despesa para exportar','red');return;}
+  var fA=deposits.filter(function(d){return d.tipo==='Flash';}).reduce(function(s,d){return s+d.valor;},0);
+  var dA=deposits.filter(function(d){return d.tipo==='Depósito';}).reduce(function(s,d){return s+d.valor;},0);
+  var fS=expenses.filter(function(e){return e.pagamento==='Flash';}).reduce(function(s,e){return s+e.valor;},0);
+  var dS=expenses.filter(function(e){return e.pagamento==='Depósito';}).reduce(function(s,e){return s+e.valor;},0);
+  var tot=expenses.reduce(function(s,e){return s+e.valor;},0);
+  var wb=XLSX.utils.book_new();
+  var rows=[['PRESTAÇÃO DE CONTAS DE VIAGEM'],['Gerado em:',new Date().toLocaleString('pt-BR')],[],['#','DATA','ESTABELECIMENTO','CATEGORIA','PAGAMENTO','VALOR (R$)','OBSERVAÇÃO']];
+  expenses.forEach(function(e,i){rows.push([i+1,fD(e.data),e.nome,e.categoria,e.pagamento||'',e.valor,e.obs||'']);});
+  rows.push([],[],['','','','','TOTAL GASTO',tot]);
+  rows.push([],['RESUMO FINANCEIRO'],['','Recebido','Gasto','Saldo']);
+  rows.push(['Cartão Flash',fA,fS,fA-fS]);
+  rows.push(['Depósito Conta',dA,dS,dA-dS]);
+  rows.push(['TOTAL',fA+dA,tot,(fA+dA)-tot]);
+  rows.push([],['RESUMO POR CATEGORIA'],['Categoria','Total Gasto']);
+  categories.forEach(function(cat){var s=expenses.filter(function(e){return e.categoria===cat.name;}).reduce(function(sum,e){return sum+e.valor;},0);if(s>0)rows.push([cat.name,s]);});
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:4},{wch:13},{wch:35},{wch:15},{wch:15},{wch:12},{wch:30}];
+  XLSX.utils.book_append_sheet(wb,ws,'Despesas');
+  if(deposits.length){
+    var dr=[['DEPÓSITOS RECEBIDOS'],[],['#','DATA','TIPO','VALOR (R$)','OBSERVAÇÃO']];
+    deposits.forEach(function(d,i){dr.push([i+1,fD(d.data),d.tipo,d.valor,d.obs||'']);});
+    dr.push([],[],['','','Flash',fA],['','','Depósito',dA],['','','TOTAL',fA+dA]);
+    var ws2=XLSX.utils.aoa_to_sheet(dr);ws2['!cols']=[{wch:4},{wch:13},{wch:15},{wch:12},{wch:30}];
+    XLSX.utils.book_append_sheet(wb,ws2,'Depósitos');
+  }
+  var dt=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb,'prestacao-contas-'+dt+'.xlsx');
+  toast('✅ Excel exportado!','green');
+}
+
+async function rNP(){if(!settings.notifEnabled)return;if('Notification'in window&&Notification.permission!=='granted')await Notification.requestPermission();}
+function SN(title,body){
+  if('Notification'in window&&Notification.permission==='granted'){new Notification(title,{body:body});}
+  else{document.getElementById('nt').textContent=body;document.getElementById('nb').classList.add('show');}
+}
+function DN(){document.getElementById('nb').classList.remove('show');}
+function tN(){SN('🍽️ NotaFácil','Notificação de teste — funcionando!');toast('Notificação enviada!');}
+function chkN(){
+  if(!settings.notifEnabled)return;
+  var now=new Date();var h=now.getHours(),m=now.getMinutes();
+  var key='nf_notif_'+now.toDateString();
+  var fired=JSON.parse(localStorage.getItem(key)||'{}');
+  var today=now.toISOString().split('T')[0];
+  if(h===12&&m<6&&!fired.lunch){
+    if(!expenses.filter(function(e){return e.data===today&&e.categoria==='Alimentação';}).length){
+      SN('🍽️ Hora do Almoço!','Lembre-se de fotografar e registrar a nota do almoço.');
+      fired.lunch=true;localStorage.setItem(key,JSON.stringify(fired));
+    }
+  }
+  if(h===19&&m<6&&!fired.dinner){
+    if(expenses.filter(function(e){return e.data===today&&e.categoria==='Alimentação';}).length<2){
+      SN('🌙 Hora da Janta!','Não esqueça de registrar a nota da janta!');
+      fired.dinner=true;localStorage.setItem(key,JSON.stringify(fired));
+    }
+  }
+}
+
+function toast(msg,type){
+  var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');
+  setTimeout(function(){t.classList.add('show');},10);
+  setTimeout(function(){t.className='toast';},2800);
+}
+
+ld();rH();rNP();
+setInterval(chkN,60000);chkN();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(){console.log('SW ok');})
+      .catch(function(e){console.log('SW err',e);});
+  });
+}
+</script>
+</body>
+</html>
